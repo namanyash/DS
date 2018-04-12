@@ -5,8 +5,9 @@ console.log(P2P_PORT);
 const peers = process.argv[4] ? process.argv[4].split(',') : [];
 
 class P2P {
-  constructor(blockchain) {
+  constructor(blockchain, pool) {
     this.blockchain = blockchain;
+    this.checkoutPool = pool;
     this.sockets = [];
   }
   listen() {
@@ -34,10 +35,12 @@ class P2P {
   messageHandler(socket) {
     socket.on('message', message => {
       const data = JSON.parse(message);
-
-      console.log(data);
       if (data.chain) {
         this.blockchain.replaceChain(data.chain);
+      }
+      if (data.pool) {
+        console.log(data.pool);
+        this.checkoutPool.pushCheckout(data.pool.checkoutPool);
       }
     });
   }
@@ -50,10 +53,16 @@ class P2P {
   sendChain(socket) {
     socket.send(
       JSON.stringify({
-        type: MESSAGE_TYPES.chain,
         chain: this.blockchain.chain
       })
     );
+  }
+
+  broadcastPool() {
+    this.sockets.forEach(socket => this.sendPool(socket));
+  }
+  sendPool(socket) {
+    socket.send(JSON.stringify({ pool: this.checkoutPool }));
   }
 }
 

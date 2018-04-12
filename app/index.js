@@ -2,12 +2,15 @@ const express = require('express');
 const { Blockchain } = require('../blockchain');
 const bodyParser = require('body-parser');
 const { P2P } = require('./p2p-server');
+const CheckoutPool = require('../hospital/checkout-pool');
+const Hospital = require('../hospital/hospital');
+console.log(Hospital);
 const HTTP_PORT = process.argv[2] || 3001;
 const app = express();
-const 
 const bc = new Blockchain();
-const p2p = new P2P(bc);
-
+const cp = new CheckoutPool();
+const p2p = new P2P(bc, cp);
+const hospital = new Hospital();
 app.use(bodyParser.json());
 
 app.get('/blocks', (req, res) => {
@@ -34,6 +37,22 @@ app.post('/checkout', (req, res) => {
     additionalComments,
     administeringDoctors
   } = req.body;
-  const 
+  const checkout = hospital.createCheckout(
+    aadhar,
+    allergies,
+    ailment,
+    medicinesUsed,
+    testsConducted,
+    testResults,
+    additionalComments,
+    administeringDoctors,
+    cp
+  );
+  p2p.broadcastPool(cp);
+  res.redirect('./checkoutPool');
+});
+
+app.get('/checkoutPool', (req, res) => {
+  res.json(cp);
 });
 p2p.listen();
