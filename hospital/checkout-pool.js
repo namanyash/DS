@@ -12,7 +12,13 @@ class CheckoutPool {
     }
   }
   pushCheckout(data) {
-    this.checkoutPool.push(data[data.length - 1]);
+    if (data.length > 0) {
+      if ((this.checkoutPool = [])) {
+        this.checkoutPool = data;
+      } else {
+        this.checkoutPool.push(data[data.length - 1]);
+      }
+    }
   }
 }
 

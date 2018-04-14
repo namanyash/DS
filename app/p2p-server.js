@@ -31,6 +31,7 @@ class P2P {
 
     this.messageHandler(socket);
     this.sendChain(socket);
+    this.sendPool(socket);
   }
   messageHandler(socket) {
     socket.on('message', message => {
@@ -41,6 +42,9 @@ class P2P {
       if (data.pool) {
         console.log(data.pool);
         this.checkoutPool.pushCheckout(data.pool.checkoutPool);
+      }
+      if (data.clearPool) {
+        this.checkoutPool.checkoutPool = [];
       }
     });
   }
@@ -63,6 +67,13 @@ class P2P {
   }
   sendPool(socket) {
     socket.send(JSON.stringify({ pool: this.checkoutPool }));
+  }
+  clearPool() {
+    this.checkoutPool.checkoutPool = [];
+    this.sockets.forEach(socket => this.clearingPool(socket));
+  }
+  clearingPool(socket) {
+    socket.send(JSON.stringify({ clearPool: '1' }));
   }
 }
 

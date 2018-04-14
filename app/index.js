@@ -4,25 +4,31 @@ const bodyParser = require('body-parser');
 const { P2P } = require('./p2p-server');
 const CheckoutPool = require('../hospital/checkout-pool');
 const Hospital = require('../hospital/hospital');
-console.log(Hospital);
+const Mine = require('./mine');
 const HTTP_PORT = process.argv[2] || 3001;
 const app = express();
 const bc = new Blockchain();
 const cp = new CheckoutPool();
 const p2p = new P2P(bc, cp);
 const hospital = new Hospital();
+const miner = new Mine(bc, cp, p2p);
 app.use(bodyParser.json());
+
+app.get('/mine', (req, res) => {
+  miner.minePool();
+  res.redirect('/blocks');
+});
 
 app.get('/blocks', (req, res) => {
   res.json(bc.chain);
 });
 
-app.post('/mine', (req, res) => {
-  const block = bc.addBlock(req.body.data);
-  console.log(`New block added : ${block.toString()}`);
-  p2p.syncChains();
-  res.redirect('/blocks');
-});
+// app.post('/mine', (req, res) => {
+//   const block = bc.addBlock(req.body.data);
+//   console.log(`New block added : ${block.toString()}`);
+//   p2p.syncChains();
+//   res.redirect('/blocks');
+// });
 app.listen(HTTP_PORT, () => {
   console.log(`listening on port ${HTTP_PORT}`);
 });
